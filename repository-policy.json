@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "defaultVisibility": "private",
+  "changeFlow": {
+    "pullRequestRequired": true,
+    "immutableDependencies": true,
+    "requiredFiles": ["README.md", "AGENTS.md", ".github/workflows/ci.yml"]
+  },
+  "security": {
+    "sharedAuthOwnsIdentity": true,
+    "oresChatOwnsProductAuthorization": true,
+    "customerAdminFallback": false,
+    "secretsInGit": false,
+    "mcpReadOnly": true,
+    "sidecarLoopbackOnly": true
+  },
+  "platforms": {
+    "flags": "flags-2-env",
+    "sync": "opto-sync",
+    "telemetry": "ores-otel",
+    "packages": "zed-pkg",
+    "encryptedEnvironment": "env/enc"
+  }
+}
+
