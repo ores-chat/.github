@@ -6,7 +6,11 @@
   "coordinatorBranch": "main",
   "coordinatorCommit": "26fadc95f9cca08aa00936025ed649dd5401f475",
   "manifestPath": "fleet/manifests/ores-chat.json",
-  "status": "current",
+  "status": "blocked",
+  "blockers": [
+    "the canonical .github repository is public while current organization policy requires private visibility",
+    "focused dual-auth, sign-in-link, Redis LRU Pub/Sub, rate-limit integration, and SOPS redaction suites are not yet visible in ores-chat-test"
+  ],
   "policy": {
     "readOnly": true,
     "failClosedWithoutCredential": true,
@@ -14,5 +18,6 @@
     "neverPublishSecretsOrCustomerContent": true
   },
   "testOrganization": "ores-chat-test",
-  "lastReviewedAt": "2026-09-07T23:34:00Z"
+  "focusedTestTrackingIssue": "ores-chat-test/.github#1",
+  "lastReviewedAt": "2026-09-07T23:35:00Z"
 }
