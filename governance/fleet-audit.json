@@ -3,9 +3,9 @@
   "logicalOrganization": "ores-chat",
   "trackingIssue": "ores-chat/.github#3",
   "coordinatorRepository": "ores-redis-lru-cache-test/ores-redis-lru-e2e-test",
-  "coordinatorBranch": "DEN-3954-cross-org-fleet-audit",
+  "coordinatorBranch": "main",
   "manifestPath": "fleet/manifests/ores-chat.json",
-  "status": "proposed",
+  "status": "current",
   "policy": {
     "readOnly": true,
     "failClosedWithoutCredential": true,
@@ -13,5 +13,5 @@
     "neverPublishSecretsOrCustomerContent": true
   },
   "testOrganization": "ores-chat-test",
-  "lastReviewedAt": "2026-09-07T23:00:00Z"
+  "lastReviewedAt": "2026-09-07T23:15:00Z"
 }
