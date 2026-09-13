@@ -1,0 +1,24 @@
+name: ORES static trace markers
+on:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  static-ids:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Enforce static ores-trace and ores-routine IDs
+        shell: bash
+        run: |
+          node <<'NODE'
+          const cp=require('node:child_process'),fs=require('node:fs');
+          const files=cp.execFileSync('git',['ls-files','-z']).toString('utf8').split('\0').filter(Boolean).filter(p=>/\.(?:[cm]?[jt]s|tsx|jsx|rs|dart|go|java|kt|kts)$/.test(p)).filter(p=>!/(?:^|\/)(?:generated|target|vendor|node_modules|build|dist)(?:\/|$)/.test(p));
+          const trace=/^ores-trace-[A-Za-z0-9_-]{21}$/,routine=/^ores-routine-[A-Za-z0-9_-]{21}$/,failures=[];
+          for(const path of files){const text=fs.readFileSync(path,'utf8');text.split(/\r?\n/).forEach((line,i)=>{if(/dd-trace-[A-Za-z0-9_-]+/.test(line))failures.push(`${path}:${i+1}: legacy dd-trace literal`);for(const m of line.matchAll(/\b(?:addTraceId|addTrace|add_trace_id|add_trace)\s*\(\s*["']([^"']+)["']/g)){if(!trace.test(m[1]))failures.push(`${path}:${i+1}: static trace ID must be inline ores-trace-<21-char nanoid>`);}if(/\b(?:const|let|var|static)\b[^=\n]*=\s*["']ores-trace-/.test(line))failures.push(`${path}:${i+1}: static ores-trace IDs must not be hoisted into variables`);for(const m of line.matchAll(/["'](ores-routine-[A-Za-z0-9_-]+)["']/g)){if(!routine.test(m[1]))failures.push(`${path}:${i+1}: routine ID must be ores-routine-<21-char nanoid>`);}});}
+          if(failures.length){console.error(failures.join('\n'));process.exit(1);}console.log(`validated ${files.length} tracked source files`);
+          NODE
