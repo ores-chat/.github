@@ -29,6 +29,16 @@ fn check_policy(policy: &Value) -> Result<(), String> {
         eq(&format!("/security/{name}"), Value::from(want))?;
     }
 
+    // Enforce the Rust-first repository automation contract explicitly.
+    for (field, expected) in [
+        ("scriptsAndValidators", Value::from("rust")),
+        ("testHarnesses", Value::from("rust")),
+        ("newPythonToolingAllowed", Value::from(false)),
+        ("nativeLanguageTestsAllowed", Value::from(true)),
+    ] {
+        eq(&format!("/tooling/{field}"), expected)?;
+    }
+
     // Shared platform choices are contract constraints, not unchecked metadata.
     for (name, want) in [
         ("flags", "flags-2-env"),
@@ -115,6 +125,23 @@ mod tests {
             assert!(
                 check_policy(&policy).unwrap_err().contains(name),
                 "{name} drift must fail closed"
+            );
+        }
+    }
+
+    #[test]
+    fn tooling_must_use_rust_instead_of_new_python() {
+        for (field, invalid) in [
+            ("scriptsAndValidators", Value::from("python")),
+            ("testHarnesses", Value::from("python")),
+            ("newPythonToolingAllowed", Value::from(true)),
+            ("nativeLanguageTestsAllowed", Value::from(false)),
+        ] {
+            let mut policy = policy();
+            policy["tooling"][field] = invalid;
+            assert!(
+                check_policy(&policy).unwrap_err().contains(field),
+                "{field} drift must fail closed"
             );
         }
     }
