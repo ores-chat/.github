@@ -52,12 +52,71 @@ fn check_policy(policy: &Value) -> Result<(), String> {
     Ok(())
 }
 
+fn check_python_workflow(path: &Path, content: &str) -> Result<(), String> {
+    for (index, line) in content.lines().enumerate() {
+        if line.trim_start().starts_with('#') {
+            continue;
+        }
+        for token in line
+            .split(|ch: char| !ch.is_ascii_alphanumeric() && ch != '_')
+            .filter(|token| !token.is_empty())
+        {
+            if matches!(token, "python" | "python2" | "python3" | "pip" | "pip3" | "pytest" | "unittest") {
+                return Err(format!(
+                    "Python workflow tooling is forbidden: {}:{} ({token})",
+                    path.display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// The Rust-only policy must be enforced against actual repository tooling,
+/// not just an assertion in repository-policy.json. Ignore generated output.
+fn check_tooling_tree(path: &Path, in_workflows: bool) -> Result<(), String> {
+    if !path.exists() {
+        return Ok(());
+    }
+    if path.is_dir() {
+        for entry in fs::read_dir(path).map_err(|e| format!("{}: {e}", path.display()))? {
+            let entry = entry.map_err(|e| format!("{}: {e}", path.display()))?;
+            let name = entry.file_name();
+            if matches!(
+                name.to_str(),
+                Some("target" | "node_modules" | ".git" | "tmp" | "temp" | ".ores")
+            ) {
+                continue;
+            }
+            check_tooling_tree(&entry.path(), in_workflows)?;
+        }
+        return Ok(());
+    }
+
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("py" | "pyw") => Err(format!(
+            "Python repository script/test is forbidden; port it to Rust: {}",
+            path.display()
+        )),
+        Some("yml" | "yaml") if in_workflows => {
+            let content = fs::read_to_string(path)
+                .map_err(|e| format!("cannot read workflow {}: {e}", path.display()))?;
+            check_python_workflow(path, &content)
+        }
+        _ => Ok(()),
+    }
+}
+
 fn check(root: &Path) -> Result<(), String> {
     let data = fs::read_to_string(root.join("repository-policy.json"))
         .map_err(|e| format!("cannot read repository policy: {e}"))?;
     let policy: Value =
         serde_json::from_str(&data).map_err(|e| format!("invalid repository policy JSON: {e}"))?;
     check_policy(&policy)?;
+    check_tooling_tree(&root.join("tools"), false)?;
+    check_tooling_tree(&root.join("scripts"), false)?;
+    check_tooling_tree(&root.join(".github/workflows"), true)?;
 
     for document in [
         "README.md",
@@ -126,6 +185,27 @@ mod tests {
                 check_policy(&policy).unwrap_err().contains(name),
                 "{name} drift must fail closed"
             );
+        }
+    }
+
+    #[test]
+    fn workflow_python_invocations_fail_closed() {
+        let path = Path::new(".github/workflows/ci.yml");
+        for invalid in [
+            "- run: python3 scripts/validate.py",
+            "run: pip install pytest",
+            "  - run: python -m unittest",
+            "  - run: pytest tests",
+            "- uses: actions/setup-python@0123456789abcdef",
+        ] {
+            assert!(check_python_workflow(path, invalid).is_err(), "{invalid}");
+        }
+        for allowed in [
+            "# python3 scripts/validate.py is no longer used",
+            "- run: cargo test --all-targets",
+            "- run: rustc --test tool/check.rs -o /tmp/check-tests",
+        ] {
+            assert!(check_python_workflow(path, allowed).is_ok(), "{allowed}");
         }
     }
 
