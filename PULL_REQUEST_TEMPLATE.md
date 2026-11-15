@@ -12,6 +12,7 @@
 ## Verification
 
 - [ ] Format/lint/test gates pass
+- [ ] New tooling and test harnesses use Rust, not Python; any legacy Python replacement has fixture/golden parity tests
 - [ ] No credential values or production data added
 - [ ] Customer/admin fallback remains impossible
 - [ ] Telemetry excludes message/context/identity/credential contents
