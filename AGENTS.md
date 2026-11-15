@@ -5,6 +5,8 @@
 - Shared Auth owns identity; ORES Chat owns product authorization; customer/admin fallback is forbidden.
 - Keep secrets out of Git and public discussion. Use private vulnerability reporting.
 - Do not name nonexistent teams in CODEOWNERS; add ownership only after organization teams are created.
+- Use Rust for new repository scripts, CI validators, code generation, migration tools, security audits, and test harnesses; do not introduce Python scripts/tests or `python`/`python3`/`pip`/`pytest` invocations in CI. Native-language application tests (for example Dart/Flutter or Rust unit tests) remain appropriate.
+- Treat legacy Python tooling as migration debt: port to Rust with equivalent fixtures and negative/boundary tests, switch CI to the Rust implementation, and remove the Python version only after parity is verified. Vendor-mandated Python requires an explicit documented exception and review.
 
 ## Repository-local Git worktrees
 
