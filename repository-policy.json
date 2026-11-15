@@ -14,6 +14,12 @@
     "mcpReadOnly": true,
     "sidecarLoopbackOnly": true
   },
+  "tooling": {
+    "scriptsAndValidators": "rust",
+    "testHarnesses": "rust",
+    "newPythonToolingAllowed": false,
+    "nativeLanguageTestsAllowed": true
+  },
   "platforms": {
     "flags": "flags-2-env",
     "sync": "opto-sync",
