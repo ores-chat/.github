@@ -7,6 +7,8 @@ All changes use a focused feature branch and pull request. State the owning repo
 - Keep commits explicit and reviewable.
 - Pin source dependencies to immutable commits or locked versions.
 - Run repository-local format, lint, test, contract, and smoke gates.
+- Implement new CI checks, repo scripts, generators, auditors, and test harnesses in Rust, **not Python**. Do not add `.py` files or `python`/`python3`/`pip`/`pytest` steps to workflows. Keep native-language product tests where required (e.g., Flutter/Dart).
+- For existing Python tooling, preserve positive/negative fixture coverage and error semantics while porting to Rust; remove the original Python scripts and invocations in the same proven-parity change. Document any required vendor-only exception.
 - Keep credentials out of code, fixtures, logs, telemetry, and CLI defaults.
 - Preserve public/customer/admin realm, endpoint, data, and theme separation.
 - Update interfaces/docs/E2E when a cross-repository contract changes.
